@@ -7,29 +7,16 @@ app.use(express.urlencoded({
     extended: false
 }));
 
-app.listen(PORT, () => {
-    console.log('Server started on port 3000');
-})
-
 db.sequelize.sync()
-    .then((result) => {
-        app.listen(3000, () => {
-            console.log('Server started');
+    .then(() => {
+        app.listen(PORT, () => {
+            console.log(`Server started on port ${PORT}`);
         })
     })
-    .catch((err)=> {
-        console.log(err);
+    .catch((err) => {
+        console.error('Failed to connect to the database:', err);
+        process.exitCode = 1;
     })
-
-app.get("/komik", async (req, res) => {
-    const data = req.body;
-    try{
-        const komik = await db.Komik.create(data);
-        res.send(komik);
-    } catch (err) {
-        res.send(err)
-    }
-})
 
 app.get('/komik', async (req, res) => {
     try {
@@ -37,6 +24,15 @@ app.get('/komik', async (req, res) => {
         res.send(komik);
     } catch (err) {
         res.send(err);
+    }
+});
+
+app.post('/komik', async (req, res) => {
+    try {
+        const komik = await db.Komik.create(req.body);
+        res.status(201).json(komik);
+    } catch (err) {
+        res.status(500).json({ message: err.message });
     }
 });
 
